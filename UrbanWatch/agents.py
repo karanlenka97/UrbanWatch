@@ -9,10 +9,13 @@ from langchain_ollama import ChatOllama
 from langchain.tools import tool
 from langchain_core.messages import HumanMessage, ToolMessage
 from tavily import TavilyClient
+from rich import print
 
 #now lets create some tools
 
-# weather tool
+# =========================
+# 🌦️ Weather Tool
+# =========================
 
 @tool
 def get_weather(city: str) -> str:
@@ -36,3 +39,38 @@ def get_weather(city: str) -> str:
 
 print(get_weather.invoke("Cuttack"))
 
+# =========================
+# 📰 News Tool (Tavily)
+# =========================
+
+tavily_client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
+
+@tool
+def get_news(city: str) -> str:
+    """Get latest news about a city"""
+    
+    response = tavily_client.search(
+        query=f"latest news in {city}",
+        search_depth="basic",
+        max_results=3
+    )
+    
+    results = response.get("results", [])
+    
+    if not results:
+        return f"No news found for {city}"
+    
+    news_list = []
+    
+    for r in results:
+        title = r.get("title", "No title")
+        url = r.get("url", "")
+        snippet = r.get("content", "")
+        
+        news_list.append(
+            f"- {title}\n  🔗 {url}\n  📝 {snippet[:100]}..."
+        )
+    
+    return f"Latest news in {city}:\n\n" + "\n\n".join(news_list)
+
+print(get_news.invoke("Cuttack"))
