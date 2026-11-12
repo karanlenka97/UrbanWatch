@@ -74,3 +74,7 @@ def get_news(city: str) -> str:
     return f"Latest news in {city}:\n\n" + "\n\n".join(news_list)
 
 print(get_news.invoke("Cuttack"))
+
+# =========================
+# 🧠 LLM Setup
+# =========================
