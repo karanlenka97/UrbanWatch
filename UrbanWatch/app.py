@@ -34,3 +34,12 @@ def approval_middleware(request, handler):
         )
     return handler(request)
 
+
+def new_agent():
+    return create_agent(
+        llm,
+        tools=[get_weather, get_news],
+        system_prompt="You are a helpful city assistant for UrbanWatch.",
+        middleware=[approval_middleware],
+        checkpointer=InMemorySaver(),
+    )
