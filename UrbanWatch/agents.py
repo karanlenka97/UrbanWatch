@@ -6,7 +6,7 @@ load_dotenv()
 from langchain_ollama import ChatOllama
 from langchain.tools import tool
 from langchain_core.messages import HumanMessage, ToolMessage
-from tavily import TavilyClient
+from tavily import TavilyClient, config
 from rich import print
 from langchain.agents import create_agent 
 from langchain.agents.middleware import wrap_tool_call
@@ -73,4 +73,32 @@ def get_news(city: str) -> str:
 
 llm = ChatOllama(model="qwen3:8b")
 
+@wrap_tool_call
+def human_approval(request,handler):
+    """Ask for human approval before callinng every tool"""
+    tool_name = request.tool_call["name"]
+    confirm = input(f"Agent wants to call '{tool_name}. Approve? (yes/no)")
+    if confirm.lower() != "yes":
+        return ToolMessage(
+            content="Tool call denied by user.",
+            tool_call_id=request.tool_call["id"]
+        )
 
+    return handler(request)  
+
+
+agent = create_agent(
+    model = llm,
+    tools = [get_weather, get_news],
+    system_prompt = "You are a helpful city assistant for UrbanWatch.",
+)
+
+print("UrbanWatch | type exit to quit")
+while True: 
+    user_input = input("You: ")
+    if user_input.lower() == "exit":
+        break
+    result = agent.invoke(
+    {"messages": [{"role": "user", "content": user_input}]},
+    config=config)
+    print("bot:", result['messages'][-1].content)
