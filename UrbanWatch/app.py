@@ -43,3 +43,14 @@ def new_agent():
         middleware=[approval_middleware],
         checkpointer=InMemorySaver(),
     )
+
+
+def render_message(message):
+    if isinstance(message, HumanMessage):
+        st.chat_message("user").write(message.content)
+    elif isinstance(message, AIMessage):
+        if message.content:
+            st.chat_message("assistant").write(message.content)
+        for call in getattr(message, "tool_calls", []):
+            with st.chat_message("assistant"):
+                st.caption(f"Requested tool: {call.get('name', 'tool')}")
