@@ -54,3 +54,14 @@ def render_message(message):
         for call in getattr(message, "tool_calls", []):
             with st.chat_message("assistant"):
                 st.caption(f"Requested tool: {call.get('name', 'tool')}")
+
+
+
+def get_pending_approval(state):
+    tasks = state.get("tasks", [])
+    for task in tasks:
+        for item in task.get("interrupts", []):
+            value = getattr(item, "value", item)
+            if isinstance(value, dict) and "tool_name" in value:
+                return value
+    return None
